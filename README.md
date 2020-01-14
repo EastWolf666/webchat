@@ -65,7 +65,7 @@ JAR包:在webapp/file/jar,这里放了所有用到的JAR包,方便不会maven的
 聊天截图
 ![聊天截图](https://raw.githubusercontent.com/Amayadream/WebChat/master/src/main/webapp/file/photo/1.png)
 ![聊天截图](https://raw.githubusercontent.com/Amayadream/WebChat/master/src/main/webapp/file/photo/2.png)
-![聊天截图](https://raw.githubusercontent.com/EastWolf666/webchat/master/src/main/webapp/file/photo/2robot1.png)
+![聊天截图](https://raw.githubusercontent.com/EastWolf666/webchat/master/src/main/webapp/file/photo/robot1.jpg)
 个人设置
 ![个人设置](https://raw.githubusercontent.com/Amayadream/WebChat/master/src/main/webapp/file/photo/3.png)
 系统设置
