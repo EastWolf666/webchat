@@ -5,7 +5,7 @@
 <head>
     <title>WebChat | 聊天</title>
     <jsp:include page="include/commonfile.jsp"/>
-    <script src="${ctx}/plugins/sockjs/sockjs.js"></script>
+    <script src="${ctx}/static/plugins/sockjs/sockjs.js"></script>
 </head>
 <body>
 <jsp:include page="include/header.jsp"/>
@@ -93,7 +93,7 @@
     }
     $("#tuling").click(function(){
         var onlinenum = $("#onlinenum").text();
-        if($(this).text() == "未上线"){
+        if($(this).text() === "未上线"){
             $(this).text("已上线").removeClass("am-btn-danger").addClass("am-btn-success");
             showNotice("图灵机器人加入聊天室");
             $("#onlinenum").text(parseInt(onlinenum) + 1);
@@ -113,6 +113,7 @@
     };
     ws.onmessage = function (evt) {
         analysisMessage(evt.data);  //解析后台传回的消息,并予以展示
+        console.log(evt);
     };
     ws.onerror = function (evt) {
         layer.msg("产生异常", { offset: 0});
@@ -163,7 +164,7 @@
      */
     function checkConnection(){
         if(ws != null){
-            layer.msg(ws.readyState == 0? "连接异常":"连接正常", { offset: 0});
+            layer.msg(ws.readyState === 0? "连接异常":"连接正常", { offset: 0});
         }else{
             layer.msg("连接未开启!", { offset: 0, shift: 6 });
         }
@@ -177,16 +178,20 @@
             layer.msg("连接未开启!", { offset: 0, shift: 6 });
             return;
         }
+        var url = "http://openapi.tuling123.com/openapi/api/v2";
         var message = $("#message").val();
-        var to = $("#sendto").text() == "全体成员"? "": $("#sendto").text();
-        if(message == null || message == ""){
+        var tulingMsg = "";
+        var to = $("#sendto").text() === "全体成员"? "": $("#sendto").text();
+        if(message == null || message === ""){
             layer.msg("请不要惜字如金!", { offset: 0, shift: 6 });
             return;
         }
-        $("#tuling").text() == "已上线"? tuling(message):console.log("图灵机器人未开启");  //检测是否加入图灵机器人
+
         ws.send(JSON.stringify({
             message : {
+                url : url,
                 content : message,
+                tulingMsg : tulingMsg,
                 from : '${userid}',
                 to : to,      //接收人,如果没有则置空,如果有多个接收人则用,分隔
                 time : getDateFull()
@@ -197,12 +202,14 @@
 
     /**
      * 解析后台传来的消息
-     * "massage" : {
+     * "message" : {
      *              "from" : "xxx",
      *              "to" : "xxx",
      *              "content" : "xxx",
+     *              "tulingMsg" : "xxx",
      *              "time" : "xxxx.xx.xx"
      *          },
+     *
      * "type" : {notice|message},
      * "list" : {[xx],[xx],[xx]}
      */
@@ -210,6 +217,7 @@
         message = JSON.parse(message);
         if(message.type == "message"){      //会话消息
             showChat(message.message);
+            $("#tuling").text() === "已上线"? tuling(message.message.tulingMsg):console.log("图灵机器人未开启");  //检测是否加入图灵机器人
         }
         if(message.type == "notice"){       //提示消息
             showNotice(message.message);
@@ -232,8 +240,8 @@
      * 展示会话信息
      */
     function showChat(message){
-        var to = message.to == null || message.to == ""? "全体成员" : message.to;   //获取接收人
-        var isSef = '${userid}' == message.from ? "am-comment-flip" : "";   //如果是自己则显示在右边,他人信息显示在左边
+        var to = message.to == null || message.to === ""? "全体成员" : message.to;   //获取接收人
+        var isSef = '${userid}' === message.from ? "am-comment-flip" : "";   //如果是自己则显示在右边,他人信息显示在左边
         var html = "<li class=\"am-comment "+isSef+" am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/"+message.from+"/head\"></a><div class=\"am-comment-main\">\n" +
                 "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">"+message.from+"</a> 发表于<time> "+message.time+"</time> 发送给: "+to+" </div></header><div class=\"am-comment-bd\"> <p>"+message.content+"</p></div></div></li>";
         $("#chat").append(html);
@@ -249,7 +257,7 @@
         $("#list").html("");    //清空在线列表
         $.each(list, function(index, item){     //添加私聊按钮
             var li = "<li>"+item+"</li>";
-            if('${userid}' != item){    //排除自己
+            if('${userid}' !== item){    //排除自己
                 li = "<li>"+item+" <button type=\"button\" class=\"am-btn am-btn-xs am-btn-primary am-round\" onclick=\"addChat('"+item+"');\"><span class=\"am-icon-phone\"><span> 私聊</button></li>";
             }
             $("#list").append(li);
@@ -262,21 +270,12 @@
      * @param message
      */
     function tuling(message){
-        var html;
-        $.getJSON("http://www.tuling123.com/openapi/api?key=6ad8b4d96861f17d68270216c880d5e3&info=" + message,function(data){
-            if(data.code == 100000){
-                html = "<li class=\"am-comment am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/static/img/robot.jpg\"></a><div class=\"am-comment-main\">\n" +
-                        "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">Robot</a> 发表于<time> "+getDateFull()+"</time> 发送给: ${userid}</div></header><div class=\"am-comment-bd\"> <p>"+data.text+"</p></div></div></li>";
-            }
-            if(data.code == 200000){
-                html = "<li class=\"am-comment am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/static/img/robot.jpg\"></a><div class=\"am-comment-main\">\n" +
-                        "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">Robot</a> 发表于<time> "+getDateFull()+"</time> 发送给: ${userid}</div></header><div class=\"am-comment-bd\"> <p>"+data.text+"</p><a href=\""+data.url+"\" target=\"_blank\">"+data.url+"</a></div></div></li>";
-            }
-            $("#chat").append(html);
-            var chat = $("#chat-view");
-            chat.scrollTop(chat[0].scrollHeight);
-            $("#message").val("");  //清空输入区
-        });
+        var html = "<li class=\"am-comment am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/static/source/img/robot.jpg\"></a><div class=\"am-comment-main\">\n" +
+                            "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">Robot</a> 发表于<time> "+getDateFull()+"</time> 发送给: ${userid}</div></header><div class=\"am-comment-bd\"> <p>"+message+"</p></div></div></li>";
+        $("#chat").append(html);
+        var chat = $("#chat-view");
+        chat.scrollTop(chat[0].scrollHeight);
+        $("#message").val("");  //清空输入区
     }
 
     /**

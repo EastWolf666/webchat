@@ -7,10 +7,7 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -45,7 +42,6 @@ public class ChatServer {
         String message = getMessage("[" + userid + "]加入聊天室,当前在线人数为"+getOnlineCount()+"位", "notice",  list);
         broadcast(message);     //广播
     }
-
     /**
      * 连接关闭调用的方法
      */
@@ -61,24 +57,36 @@ public class ChatServer {
 
     /**
      * 接收客户端的message,判断是否有接收人而选择进行广播还是指定发送
-     * @param _message 客户端发送过来的消息
+     * @param message 客户端发送过来的消息
      */
     @OnMessage
-    public void onMessage(String _message) {
-        JSONObject chat = JSON.parseObject(_message);
-        JSONObject message = JSON.parseObject(chat.get("message").toString());
-        if(message.get("to") == null || message.get("to").equals("")){      //如果to为空,则广播;如果不为空,则对指定的用户发送消息
-            broadcast(_message);
+    public void onMessage(String message) throws IOException {
+        JSONObject chat = JSON.parseObject(message);
+        JSONObject messages = JSON.parseObject(chat.get("message").toString());
+        String url = (String) messages.get("url");
+        //如果to为空,则广播;如果不为空,则对指定的用户发送消息
+        if(messages.get("to") == null || messages.get("to").equals("")){
+            String Msg = (String) messages.get("content");
+            JSONObject jsonObject = HttpRobot.transJosn(Msg); // Msg是文本消息,是用来交互的text的内容
+            String tulingMsg = HttpRobot.postJson(url, jsonObject.toString());
+            messages.put("tulingMsg" , tulingMsg);
+            chat.put("message" , messages);
+            message = chat.toJSONString();
+            broadcast(message);
         }else{
-            String [] userlist = message.get("to").toString().split(",");
-            singleSend(_message, (Session) routetab.get(message.get("from")));      //发送给自己,这个别忘了
+            String [] userlist = messages.get("to").toString().split(",");
+            //发送给自己,这个别忘了
+            singleSend(message, (Session) routetab.get(messages.get("from")));
+            //分别发送给每个指定用户
             for(String user : userlist){
-                if(!user.equals(message.get("from"))){
-                    singleSend(_message, (Session) routetab.get(user));     //分别发送给每个指定用户
+                if(!user.equals(messages.get("from"))){
+                    singleSend(message, (Session) routetab.get(user));
                 }
             }
         }
     }
+
+
 
     /**
      * 发生错误时调用

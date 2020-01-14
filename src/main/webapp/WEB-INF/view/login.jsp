@@ -30,7 +30,7 @@
       <input type="password" id="password" name="password" placeholder="请输入密码">
     </div>
     <div class="signin">
-      <input type="submit" id="submit" value="Login" >
+      <input type="submit" id="submit" value="Login">
     </div>
   </form>
 </div>

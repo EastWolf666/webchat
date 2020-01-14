@@ -20,9 +20,9 @@ import org.junit.Test;
  */
 public class PoolManager {
     private static String driver = "com.mysql.jdbc.Driver";
-    private static String url = "jdbc:mysql://127.0.0.1:3306/webchat?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC";
+    private static String url = "jdbc:mysql://192.168.xxx.xxx:3306/webchat?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC";
     private static String Name = "root";
-    private static String Password = "root";
+    private static String Password = "93zt00";
 
     private static Class driverClass = null;
     private static ObjectPool connectionPool = null;
