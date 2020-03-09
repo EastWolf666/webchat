@@ -6,6 +6,10 @@
     <title>WebChat | 聊天</title>
     <jsp:include page="include/commonfile.jsp"/>
     <script src="${ctx}/static/plugins/sockjs/sockjs.js"></script>
+    <link href="${ctx}/static/ueditor/themes/default/css/ueditor.css" rel="stylesheet">
+    <script src="${ctx}/static/ueditor/ueditor.config.js"></script>
+    <script src="${ctx}/static/ueditor/ueditor.all.min.js"></script>
+    <script src="${ctx}/static/ueditor/lang/zh-cn/zh-cn.js"></script>
 </head>
 <body>
 <jsp:include page="include/header.jsp"/>
@@ -15,27 +19,67 @@
     <!-- content start -->
     <div class="admin-content">
         <div class="" style="width: 80%;float:left;">
-            <!-- 聊天区 -->
-            <div class="am-scrollable-vertical" id="chat-view" style="height: 510px;">
+            <!-- 聊天区
+            <div class="am-scrollable-vertical" id="chat-view" style="height: 510px;border:1px solid grey">
                 <ul class="am-comments-list am-comments-list-flip" id="chat">
                 </ul>
-            </div>
+            </div>-->
+            <!-- chat content start -->
+             <div class="chat-content am-scrollable-vertical" style="height: 510px;border:1px solid grey" id="chat-view">
+              <div class="am-g am-g-fixed chat-content-container">
+               <div class="am-u-sm-12">
+                <ul id="message-list" class="am-comments-list am-comments-list-flip"></ul>
+               </div>
+              </div>
+             </div>
+             <!-- chat content start -->
             <!-- 输入区 -->
-            <div class="am-form-group am-form">
+            <!-- <div class="am-form-group am-form">
                 <textarea class="" id="message" name="message" rows="5"  placeholder="这里输入你想发送的信息..."></textarea>
-            </div>
-            <!-- 接收者 -->
-            <div class="" style="float: left">
-                <p class="am-kai">发送给 : <span id="sendto">全体成员</span><button class="am-btn am-btn-xs am-btn-danger" onclick="$('#sendto').text('全体成员')">复位</button></p>
-            </div>
-            <!-- 按钮区 -->
-            <div class="am-btn-group am-btn-group-xs" style="float:right;">
+            </div> -->
+             <!-- message input start -->
+             <div class="message-input am-margin-top">
+              <div class="am-g am-g-fixed">
+               <div class="am-u-sm-12">
+                <form class="am-form">
+                 <div class="am-form-group">
+                  <script type="text/plain" id="myEditor" style="width:100%;height:10rem;"></script>
+                 </div>
+                </form>
+               </div>
+              </div>
+              <div class="am-g am-g-fixed am-margin-top">
+               <!--输入昵称<div class="am-u-sm-6">
+                <div id="message-input-nickname" class="am-input-group am-input-group-primary">
+                 <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                 <input id="nickname" type="text" class="am-form-field" placeholder="Please enter nickname"/>
+                </div>
+               </div>-->
+               <!-- 接收者 -->
+               <div class="" style="margin-left:5px;float: left">
+                   <p class="am-kai">发送给 : <span id="sendto">全体成员</span><button class="am-btn am-btn-xs am-btn-danger" onclick="$('#sendto').text('全体成员')">复位</button></p>
+               </div>
+               <!-- 按钮区 -->
+               <div class="am-u-sm-6" style="float: right">
+                <button class="am-btn am-btn-default" type="button" onclick="getConnection()"><span class="am-icon-plug"></span> 连接</button>
+                <button class="am-btn am-btn-default" type="button" onclick="closeConnection()"><span class="am-icon-remove"></span> 断开</button>
+                <button class="am-btn am-btn-default" type="button" onclick="checkConnection()"><span class="am-icon-bug"></span> 检查</button>
+                <button class="am-btn am-btn-default" type="button" onclick="clearConsole()"><span class="am-icon-trash-o"></span> 清屏</button>
+                <button id="send" type="button" class="am-btn am-btn-primary" onclick="sendMessage()">
+                  <i class="am-icon-send"></i> Send
+                </button>
+               </div>
+              </div>
+             </div>
+            <!-- message input end -->
+            <!-- 按钮区
+            <div class="am-btn-group am-btn-group-xs" style="">
                 <button class="am-btn am-btn-default" type="button" onclick="getConnection()"><span class="am-icon-plug"></span> 连接</button>
                 <button class="am-btn am-btn-default" type="button" onclick="closeConnection()"><span class="am-icon-remove"></span> 断开</button>
                 <button class="am-btn am-btn-default" type="button" onclick="checkConnection()"><span class="am-icon-bug"></span> 检查</button>
                 <button class="am-btn am-btn-default" type="button" onclick="clearConsole()"><span class="am-icon-trash-o"></span> 清屏</button>
                 <button class="am-btn am-btn-default" type="button" onclick="sendMessage()"><span class="am-icon-commenting"></span> 发送</button>
-            </div>
+            </div>-->
         </div>
         <!-- 列表区 -->
         <div class="am-panel am-panel-default" style="float:right;width: 20%;">
@@ -58,6 +102,12 @@
 
 <script>
     $(function () {
+        //实例化编辑器
+        var ue = UE.getEditor('myEditor',{
+           initialFrameWidth: 1100,
+           initialFrameHeight: 230
+        });
+        UE.getEditor('myEditor').set
         context.init({preventDoubleContext: false});
         context.settings({compress: true});
         context.attach('#chat-view', [
@@ -80,11 +130,11 @@
             }
         ]);
     });
-    if("${message}"){
+    /*if("${message}"){
         layer.msg('${message}', {
             offset: 0
         });
-    }
+    }*/
     if("${error}"){
         layer.msg('${error}', {
             offset: 0,
@@ -179,7 +229,8 @@
             return;
         }
         var url = "http://openapi.tuling123.com/openapi/api/v2";
-        var message = $("#message").val();
+        //var message = $("#message").val();
+        var message = UE.getEditor('myEditor').getContent();
         var tulingMsg = "";
         var to = $("#sendto").text() === "全体成员"? "": $("#sendto").text();
         if(message == null || message === ""){
@@ -231,7 +282,7 @@
      * 展示提示信息
      */
     function showNotice(notice){
-        $("#chat").append("<div><p class=\"am-text-success\" style=\"text-align:center\"><span class=\"am-icon-bell\"></span> "+notice+"</p></div>");
+        $("#message-list").append("<div><p class=\"am-text-success\" style=\"text-align:center\"><span class=\"am-icon-bell\"></span> "+notice+"</p></div>");
         var chat = $("#chat-view");
         chat.scrollTop(chat[0].scrollHeight);   //让聊天区始终滚动到最下面
     }
@@ -244,8 +295,8 @@
         var isSef = '${userid}' === message.from ? "am-comment-flip" : "";   //如果是自己则显示在右边,他人信息显示在左边
         var html = "<li class=\"am-comment "+isSef+" am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/"+message.from+"/head\"></a><div class=\"am-comment-main\">\n" +
                 "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">"+message.from+"</a> 发表于<time> "+message.time+"</time> 发送给: "+to+" </div></header><div class=\"am-comment-bd\"> <p>"+message.content+"</p></div></div></li>";
-        $("#chat").append(html);
-        $("#message").val("");  //清空输入区
+        $("#message-list").append(html);
+        //$("#message").val(""); //清空输入区
         var chat = $("#chat-view");
         chat.scrollTop(chat[0].scrollHeight);   //让聊天区始终滚动到最下面
     }
@@ -272,10 +323,10 @@
     function tuling(message){
         var html = "<li class=\"am-comment am-comment-primary\"><a href=\"#link-to-user-home\"><img width=\"48\" height=\"48\" class=\"am-comment-avatar\" alt=\"\" src=\"${ctx}/static/source/img/robot.jpg\"></a><div class=\"am-comment-main\">\n" +
                             "<header class=\"am-comment-hd\"><div class=\"am-comment-meta\">   <a class=\"am-comment-author\" href=\"#link-to-user\">Robot</a> 发表于<time> "+getDateFull()+"</time> 发送给: ${userid}</div></header><div class=\"am-comment-bd\"> <p>"+message+"</p></div></div></li>";
-        $("#chat").append(html);
+        $("#message-list").append(html);
         var chat = $("#chat-view");
         chat.scrollTop(chat[0].scrollHeight);
-        $("#message").val("");  //清空输入区
+        //$("#message").val("");  //清空输入区
     }
 
     /**
@@ -293,7 +344,7 @@
      * 清空聊天区
      */
     function clearConsole(){
-        $("#chat").html("");
+        $("#message-list").html("");
     }
 
     function appendZero(s){return ("00"+ s).substr((s+"").length);}  //补0函数

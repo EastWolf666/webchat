@@ -87,8 +87,10 @@ public class HttpRobot {
         jsonObject.put("perception", perception);
 
         JSONObject userInfo = new JSONObject();
-        userInfo.put("apiKey", "456d4e3e6ebf4d3d");
-        userInfo.put("userId", "1");
+        userInfo.put("apiKey", "456d4e3e6ebf4d3dadefbcdcdfa604a1");
+        //userInfo.put("apiKey", "cd0e7517b3d9454db500004d0068f5ff");
+        userInfo.put("userId", "951c61404fdecd3");
+        //userInfo.put("userId", "b1c8e38a49eaf13");
         jsonObject.put("userInfo", userInfo);
 
         return jsonObject;
