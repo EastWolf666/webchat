@@ -36,6 +36,13 @@
 </div>
 
 <script>
+  $(document).keydown(function(){ 
+     var curKey = e.which; 
+     layer.msg("13");
+     if(curKey == 13){ 
+        $("#submit").click(); 
+     }; 
+  });
   $(function(){
     <c:if test="${not empty param.timeout}">
       layer.msg('连接超时,请重新登陆!', {
